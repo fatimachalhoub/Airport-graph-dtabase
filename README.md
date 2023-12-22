@@ -24,15 +24,17 @@ This project involves the use of Neo4J, a graph database, to analyze and visuali
 - **Description**: This file includes the query used to load the dataset into the Neo4J environment. It also contains some basic visualization queries to ensure that the data connections are working correctly.
 
 ## Team Members
-- **Mohammad Jawad Ahmad**: Role description here.
-- **Mariam Hussein**: Role description here.
-- **Fatima Chalhoub**: Role description here.
-- **Mohammad Jawad Zeinniddine**: Role description here.
+- **Mohammad Jawad Ahmad**: As the primary author of the comprehensive report, Mohammad meticulously combined and organized all the group work. He was instrumental in setting up and maintaining the GitHub repository, ensuring all components of the project were well-documented and accessible.
+
+- **Mariam Hussein**: Mariam was responsible for downloading and setting up the Neo4J database. She practiced all the queries on her laptop, playing a crucial role in troubleshooting and resolving any errors encountered during the project’s development.
+
+- **Fatima Chalhoub**: Fatima spearheaded the task of finding the perfect dataset for our project. She diligently crawled the web, inspecting several datasets before narrowing down the choice. Her efforts in dataset selection were pivotal for the foundation of our analysis.
+
+- **Mohammad Jawad Zeinniddine**: Mohammad was the brains behind all the unveiling queries. He conceptualized and executed the queries that unearthed the hidden patterns in our data. His analytical thinking drove the core analysis of the project.
+
+### Collaborative Effort
+It's important to note that while each team member had specific roles, the success of this project was truly a group effort. All team members contributed to working out the queries, brainstorming ideas, and refining our approaches to ensure the best possible outcomes in our analysis.
+
 
 ## Resources
 This project utilizes the Neo4J database for storing and querying data. For more information on Neo4J and its capabilities, please visit [Neo4J's official website](https://neo4j.com/).
-
-## Acknowledgements
-We would like to thank [any institutions, advisors, or resources that have supported this project].
-
-Feel free to explore the repository and reach out to us for any questions or collaborations!
