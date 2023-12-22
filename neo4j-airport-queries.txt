@@ -1,0 +1,139 @@
+// To find the busiest airports in your Neo4j database, we need to identify the airports with the most incoming and outgoing flights. This can be determined by counting the number of relationships each airport node has with other airport nodes. In your database schema, this would be the FLIES_TO relationship
+MATCH (a:Airport)-[f:FLIES_TO]->()
+WITH a, count(f) AS numberOfFlights
+ORDER BY numberOfFlights DESC
+RETURN a.iata, a.city, numberOfFlights
+LIMIT 10;
+
+// To identify potential new routes based on missing connections in your Neo4j database, you can look for pairs of airports that don't currently have a direct flight between them, but are connected to common airports. This might suggest a demand for a direct route.
+MATCH (srcAirport:Airport)-[:FLIES_TO]->(commonAirport:Airport)<-[:FLIES_TO]-(destAirport:Airport)
+WHERE NOT (srcAirport)-[:FLIES_TO]->(destAirport)
+AND srcAirport <> destAirport
+WITH srcAirport, destAirport, COUNT(commonAirport) AS commonConnections
+ORDER BY commonConnections DESC
+RETURN srcAirport.iata, destAirport.iata, commonConnections
+LIMIT 10;
+
+// To analyze airport connectivity within a specific continent in your Neo4j database, we can create a query that counts the number of direct flight connections each airport has within the same continent. This will give us an insight into how well-connected different airports are within a continent.
+MATCH (a1:Airport)-[:FLIES_TO]->(a2:Airport)
+WHERE a1.continent = a2.continent
+WITH a1, COUNT(a2) AS numberOfConnections
+ORDER BY numberOfConnections DESC
+RETURN a1.iata, a1.city, a1.continent, numberOfConnections
+LIMIT 10;
+
+// To calculate the average distance of routes per airport in your Neo4j database, you can use a Cypher query that aggregates the distances of all flights departing from each airport and then computes the average
+MATCH (a:Airport)-[f:FLIES_TO]->()
+WITH a, AVG(f.distance) AS averageDistance
+ORDER BY averageDistance DESC
+RETURN a.iata, a.city, averageDistance;
+
+// To discover direct connections between continents in your Neo4j database, you can write a Cypher query that finds flights linking airports on different continents. This involves matching Airport nodes that have a FLIES_TO relationship and are located on different continents. Here's how you can structure this query:
+MATCH (a1:Airport)-[:FLIES_TO]->(a2:Airport)
+WHERE a1.continent <> a2.continent
+WITH a1.continent AS DepartureContinent, a2.continent AS ArrivalContinent, COUNT(*) AS NumberOfFlights
+RETURN DepartureContinent, ArrivalContinent, NumberOfFlights
+ORDER BY NumberOfFlights DESC;
+
+// A sample Cypher query for finding the shortest path between two airports using Dijkstra's algorithm with APOC (replace 'START_IATA' and 'END_IATA' with valid values)
+MATCH (start:Airport {iata: 'START_IATA'}), (end:Airport {iata: 'END_IATA'})
+CALL apoc.algo.dijkstra(start, end, 'FLIES_TO', 'distance') 
+YIELD path, weight
+RETURN path, weight;
+
+// To find airports with the most international connections in your Neo4j database, you can write a Cypher query that counts the number of distinct foreign countries each airport has flights to. This will help identify airports that serve as major international hubs.
+MATCH (a:Airport)-[:FLIES_TO]->(b:Airport)
+WHERE a.country <> b.country
+WITH a.iata AS AirportCode, a.city AS City, COUNT(DISTINCT b.country) AS InternationalConnections
+ORDER BY InternationalConnections DESC
+RETURN AirportCode, City, InternationalConnections
+LIMIT 10;
+
+// To find hub airports in each continent, we'll look for airports with the highest number of direct connections (either incoming or outgoing flights) within their respective continents. This can be done using a Cypher query in Neo4j, which aggregates the number of FLIES_TO relationships for each airport and groups them by continent.
+MATCH (a:Airport)-[:FLIES_TO]->(b:Airport)
+WHERE a.continent = b.continent
+WITH a.continent AS Continent, a, COUNT(b) AS Connections
+ORDER BY Connections DESC
+RETURN Continent, a.iata AS AirportCode, a.city AS City, Connections
+LIMIT 10;
+
+// Query for the Highest Airport
+MATCH (a:Airport)
+RETURN a.iata AS IATA, a.city AS City, a.altitude AS Altitude
+ORDER BY a.altitude DESC
+LIMIT 1;
+
+// Query for the Lowest Airport
+MATCH (a:Airport)
+RETURN a.iata AS IATA, a.city AS City, a.altitude AS Altitude
+ORDER BY a.altitude ASC
+LIMIT 1;
+
+// Query for the Longest Route
+MATCH (a1:Airport)-[f:FLIES_TO]->(a2:Airport)
+RETURN a1.iata AS DepartureIATA, a2.iata AS ArrivalIATA, f.distance AS Distance
+ORDER BY f.distance DESC
+LIMIT 1;
+
+// Query for the Shortest Route
+MATCH (a1:Airport)-[f:FLIES_TO]->(a2:Airport)
+RETURN a1.iata AS DepartureIATA, a2.iata AS ArrivalIATA, f.distance AS Distance
+ORDER BY f.distance ASC
+LIMIT 1;
+
+// Average Number of Runways per Country
+MATCH (a:Airport)
+WITH a.country AS Country, AVG(a.runways) AS AverageRunways
+RETURN Country, AverageRunways
+ORDER BY AverageRunways DESC;
+
+// Finding Isolated Airports
+MATCH (a:Airport)
+OPTIONAL MATCH (a)-[f:FLIES_TO]->()
+WITH a, COUNT(f) AS numberOfConnections
+WHERE numberOfConnections <= 1
+RETURN a.iata AS IATA, a.city AS City, a.country AS Country, numberOfConnections
+ORDER BY numberOfConnections ASC;
+
+// Airports Serving the Most Countries
+MATCH (a:Airport)-[:FLIES_TO]->(b:Airport)
+WHERE a.country <> b.country
+WITH a.iata AS AirportCode, a.city AS City, COUNT(DISTINCT b.country) AS NumberOfCountries
+ORDER BY NumberOfCountries DESC
+RETURN AirportCode, City, NumberOfCountries
+LIMIT 10;
+
+// Continental Connectivity
+MATCH (a1:Airport)-[:FLIES_TO]->(a2:Airport)
+WHERE a1.continent <> a2.continent
+WITH a1.continent AS DepartureContinent, a2.continent AS ArrivalContinent, COUNT(*) AS NumberOfFlights
+RETURN DepartureContinent, ArrivalContinent, NumberOfFlights
+ORDER BY NumberOfFlights DESC;
+
+// Average Flight Distance by Continent
+MATCH (a1:Airport)-[f:FLIES_TO]->(a2:Airport)
+WHERE a1.continent = a2.continent
+WITH a1.continent AS Continent, AVG(f.distance) AS AverageDistance
+RETURN Continent, AverageDistance
+ORDER BY AverageDistance DESC;
+
+// Most Common Runway Lengths
+MATCH (a:Airport)
+WHERE a.longest IS NOT NULL
+WITH a.longest AS RunwayLength, COUNT(*) AS Frequency
+ORDER BY Frequency DESC
+RETURN RunwayLength, Frequency;
+
+// Cities with Multiple Airports
+MATCH (a:Airport)
+WITH a.city AS City, COUNT(*) AS NumberOfAirports
+WHERE NumberOfAirports > 1
+RETURN City, NumberOfAirports
+ORDER BY NumberOfAirports DESC;
+
+// Longest Domestic Routes 
+MATCH (a1:Airport)-[f:FLIES_TO]->(a2:Airport)
+WHERE a1.country = a2.country AND a1 <> a2
+RETURN a1.iata AS DepartureIATA, a2.iata AS ArrivalIATA, f.distance AS Distance
+ORDER BY f.distance DESC
+LIMIT 10;

@@ -1,0 +1,66 @@
+# create nodesand relationships:
+LOAD CSV WITH HEADERS FROM 'file:///airport-node-list.csv' AS row
+CREATE (a:Airport {
+  id: toInteger(row.id),
+  iata: row.iata,
+  icao: row.icao,
+  city: row.city,
+  descr: row.descr,
+  region: row.region,
+  runways: toInteger(row.runways),
+  longest: toInteger(row.longest),
+  altitude: toInteger(row.altitude),
+  country: row.country,
+  continent: row.continent,
+  latitude: toFloat(row.lat),
+  longitude: toFloat(row.lon)
+})
+
+CREATE (country:Country {name: a.country})
+CREATE (continent:Continent {name: a.continent})
+CREATE (city:City {name: a.city})
+CREATE (region:Region {name: a.region})
+
+CREATE (a)-[:IN_CITY]->(city)
+CREATE (a)-[:IN_COUNTRY]->(country)
+CREATE (city)-[:IN_COUNTRY]->(country)
+CREATE (region)-[:IN_COUNTRY]->(country)
+CREATE (a)-[:IN_REGION]->(region)
+CREATE (city)-[:IN_REGION]->(region)
+CREATE (a)-[:ON_CONTINENT]->(continent)
+CREATE (city)-[:ON_CONTINENT]->(continent)
+CREATE (country)-[:ON_CONTINENT]->(continent)
+CREATE (region)-[:ON_CONTINENT]->(continent)
+
+
+
+#create index :
+CREATE INDEX FOR (n:Airport) ON (n.iata);
+CREATE INDEX FOR (n:Airport) ON (n.icao);
+
+ # create relationship : 
+LOAD CSV WITH HEADERS FROM 'file:///iroutes-edges.csv' AS row
+MATCH (srcAirport:Airport {iata: row.src}), (destAirport:Airport {iata: row.dest})
+CREATE (srcAirport)-[:FLIES_TO {distance: toInteger(row.dist)}]->(destAirport)
+
+#image 1 
+MATCH (a:Airport)-[r:FLIES_TO]->(b:Airport)
+RETURN a, r, b LIMIT 25
+
+#image 2 
+MATCH (a:Airport)-[r:IN_CITY]->(n:City)-[:IN_COUNTRY]-(m:Country)
+RETURN a, r, n, m
+LIMIT 25;
+
+#image 3 
+MATCH (a:Airport)-[r:ON_CONTINENT]->(con:Continent)
+RETURN a, r, con
+LIMIT 20;
+
+#image 4 
+MATCH (con:Continent)<-[:ON_CONTINENT]-(co:Country)<-[:IN_COUNTRY]-(r:Region)<-[:IN_REGION]-(ci:City)<-[:IN_CITY]-(a:Airport)
+RETURN con, co, r, ci, a
+LIMIT 10;
+
+
+
